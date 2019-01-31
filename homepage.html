@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+  <link rel="stylesheet" href="css/material/css/materialize.min.css" media="screen,projection">
+  <link rel="stylesheet" href="css/main.css" media="screen,projection">
+ <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+ <script type="text/javascript" src="css/material/js/materialize.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoneBook</title>
+  <script>
+      $(document).ready(function () {
+          $("#home_address").hide();
+          $("#work_address").hide();
+		  $("#form_id").hide();
+		  $("#notify").hide();
+          $( "#datepicker" ).datepicker({
+              format: 'yyyy-mm-dd'
+          });
+          const regex = new RegExp("[0-9]|-");
+          $("#cphone").on('keypress', function (event) {
+              var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+              if (!regex.test(key)) {
+                  event.preventDefault();
+                  return false;
+              }
+          });
+          $("#wphone").on('keypress', function (event) {
+              var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+              if (!regex.test(key)) {
+                  event.preventDefault();
+                  return false;
+              }
+          });
+          $("#hphone").on('keypress', function (event) {
+              var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+              if (!regex.test(key)) {
+                  event.preventDefault();
+                  return false;
+              }
+          });
+          const codex = new RegExp("[0-9]");
+          $("#acode").on('keypress', function (event) {
+              var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+              if (!codex.test(key)) {
+                  event.preventDefault();
+                  return false;
+              }
+          });
+      });
+      //addressType
+      function getAddressType() {
+          var ex  = $( "#addType" ).val();
+          if (ex == 1) {
+              $("#home_address").show();
+              $("#work_address").hide();
+          } else if (ex == 2) {
+              $("#work_address").show();
+              $("#home_address").hide();
+          }else if (ex == 3) {
+              $("#work_address").show();
+              $("#home_address").show();
+          }else {
+              $("#home_address").hide();
+              $("#work_address").hide();
+          }
+      }
+      function formVerify() {
+          const val = $('#addType').val();
+          if (val == 1){
+              $("#address").required = true;
+              $("#city").required = true;
+              $("#state").required = true;
+              $("#zip").required = true;
+          }else if (val == 2){
+              $("#workaddress").required = true;
+              $("#workcity").required = true;
+              $("#workstate").required = true;
+              $("#workzip").required = true;
+          }else if (val == 3){
+              $("#address").required = true;
+              $("#city").required = true;
+              $("#state").required = true;
+              $("#zip").required = true;
+              $("#workaddress").required = true;
+              $("#workcity").required = true;
+              $("#workstate").required = true;
+              $("#workzip").required = true;
+          }
+          //check if phone input
+          if ($("#cphone").val() ==  null || $("#wphone").val() == null || $("#cphone").val() == null){
+              M.toast({html: 'Please enter atleast one phone number!'});
+          }
+      }
+      //register button
+      function showRegister() {
+          $("#form_id").show();
+          $("#buttonReg").hide();
+          $("#display_list").hide();
+          $("#search_form").hide();
+      }
+      //cancel button
+      function cancelClick(){
+          $("#form_id").hide();
+          $("#buttonReg").show();
+          $("#display_list").show();
+          $("#search_form").show();
+      }
+      //fetch all contacts
+      $.post('DisplayContact.php', {}, function(data) {
+          var obj = $.parseJSON(data);
+          if (obj.length === 0){
+              $("#display_list").hide();
+          }else {
+              $("#display_list").show();
+              var contactList = "";
+              contactList = "<li class=collection-header><h5>Contacts</h5></li>";
+              var count = 0;
+              $.each(obj, function () {
+                  count += 1;
+                  contactList += "<li class=collection-item center id=contactItem name=item><div><span class=title><b>" +count+".</b> "+ this.fName +" "+  this.lName + "</span><a href=editcontact.html?id=" +this.id+ " class=secondary-content id='onClickItem'>More</a></div></li>";
+              });
+              $("#contacts_list").append(contactList);
+          }
+      });
+      //search query
+      function filter(element) {
+          var value = $(element).val();
+          $("#contacts_list li").each(function() {
+              if ($(this).text().search(new RegExp(value, "i")) > -1) {
+                  $(this).show();
+              } else {
+                  $(this).hide();
+              }
+          });
+      }
+  </script>
+</head>
+<body>
+    <header>
+        <div class="navbar-fixed">
+            <nav class="navbar white">
+                <div class="nav-wrapper"><a href="homepage.html" class="brand-logo grey-text text-darken-4" style="padding: 4px"><b>PhoneBook</b></a>
+                    <ul id="nav-mobile" class="right">
+                    </ul>
+                    <form id="search_form">
+                        <div class="input-field">
+                            <form class="groups-search">
+                                <div class="groups-search-input">
+                                    <input type="search" id="search" placeholder="search contacts..." onkeyup="filter(this)">
+                                    <i class="material-icons">close</i>
+                                </div>
+                            </form>
+                        </div>
+                    </form>
+                </div>
+                <div class="nav-content">
+                    <a class="btn-floating btn-large halfway-fab waves-effect waves-light red pulse" id="buttonReg" onclick="showRegister()">
+                        <i class="large material-icons">add</i>
+                    </a>
+                </div>
+            </nav>
+        </div>
+    </header>
+        <main>
+            <div class="container">
+                <div class="container" id="display_list">
+                    <ul class="collection with-header" id="contacts_list">
+
+                    </ul>
+                </div>
+                <form method="post" name="saveContact" action="SaveContact.php" id="form_id" onsubmit="return formVerify()">
+                    <div class="card ">
+                        <div class="card-title center">
+                            <span class="title text-darken-3"><b>Contact</b></span>
+                        </div>
+                        <div class="card-content">
+                            <div class="input-field">
+                                <input placeholder="enter first name" id="fname" class="validate" type="text" name="fName" minlength="4" required="required">
+                                <label for="fname" >First name: </label>
+                            </div>
+                            <div class="input-field">
+                                <input placeholder="enter middle name"  id="mName"  class="validate" type="text" name="mName"  minlength="4">
+                                <label for="mName" >Middle name: </label>
+                            </div>
+                            <div class="input-field">
+                                <input placeholder="enter last name" id="lName"  class="validate" type="text" name="lName" minlength="4">
+                                <label for="lName" >Last name: </label>
+                            </div>
+                            <label for="addType">Address Type:</label>
+                            <div class="input-field">
+                                <div class="col s12">
+                                    <select class="browser-default" id="addType" required onclick="getAddressType()">
+                                        <option value="" disabled selected>Choose your option</option>
+                                        <option value="1" name="addType">Home</option>
+                                        <option value="2" name="addType">Work</option>
+                                        <option value="3" name="addType">Both</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="card" id="home_address">
+                            <div class="card-title center">
+                                <span class="title text-darken-3"><b>Home Address</b></span>
+                            </div>
+                            <div class="card-content">
+                                <div class="input-field">
+                                    <input placeholder="enter address" id="address"  type="text" class="validate" name="haddress" minlength="6">
+                                    <label for="address" >Address: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter city" id="city"  type="text" name="hcity" class="validate" minlength="4">
+                                    <label for="city" >City: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter state" id="state"  type="text" name="hstate" class="validate" minlength="4">
+                                    <label for="state" >State: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter zip" id="zip"  type="text" name="hzip" minlength="4">
+                                    <label for="zip" >Zip: </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" id="work_address">
+                            <div class="card-title center">
+                                <span class="title text-darken-3"><b>Wok Address</b></span>
+                            </div>
+                            <div class="card-content">
+                                <div class="input-field">
+                                    <input placeholder="enter address" id="workaddress"  type="text" class="validate" name="waddress" minlength="6">
+                                    <label for="workaddress" >Address: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter city" id="workcity"  type="text" class="validate" name="wcity" minlength="4">
+                                    <label for="workcity" >City: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter state" id="workstate"  type="text" class="validate" name="wstate" minlength="4">
+                                    <label for="workstate" >State: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter zip" id="workzip"  type="text" class="validate" name="wzip" minlength="4">
+                                    <label for="workzip" >Zip: </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <!-- Phone Section -->
+                        <div class="card-title center">
+                            <span class="title text-darken-3"><b>Phone Number</b></span>
+                        </div>
+                        <div class="card-content">
+                            <div class="col">
+                                <div class="input-field">
+                                    <input placeholder="enter area code" id="acode"  type="text" name="acode" class="validate"  minlength="3" required="required">
+                                    <label for="acode"  class="text-center">Area Code: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter cell phone" id="cphone"  type="text" name="cphone" class="validate" maxlength="15" minlength="4">
+                                    <label for="cphone"  class="text-center">Cell Phone: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter home phone" id="hphone"  type="text" name="hphone" class="validate" maxlength="15" minlength="4">
+                                    <label for="hphone"  class="text-center">Home Phone: </label>
+                                </div>
+                                <div class="input-field">
+                                    <input placeholder="enter work phone" id="wphone"  type="text" name="wphone" class="validate" maxlength="15" minlength="4">
+                                    <label for="wphone"  class="text-center">Work Phone: </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title center">
+                            <span class="title text-darken-3"><b>DOB</b></span>
+                        </div>
+                        <div class="card-content">
+                            <div class="input-field">
+                                <input type="text" placeholder="select dob" id="datepicker" required="required" name="date">
+                                <label for="datepicker"><b>Date Of Birth</b></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row s2">
+                        <button class="btn center red" type="submit" name="submitform" id="saveButton">Save</button>
+                        <button class="btn center red" onclick="cancelClick()" type="button" name="cancelform" id="canel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+        <footer class="page-footer materialize-red">
+            <div class="col center">
+                <p class="brand-logo" style="color: white">Developed by Shweta sahalot</p>
+            </div>
+        </footer>
+</body>
+</html>

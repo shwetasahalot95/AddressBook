@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+    <link rel="stylesheet" href="css/material/css/materialize.min.css" media="screen,projection">
+    <link rel="stylesheet" href="css/main.css" media="screen,projection">
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="css/material/js/materialize.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhoneBook</title>
+    <script>
+        $(document).ready(function () {
+            $("#form_id").hide();
+            $("#display_list").show();
+            $( "#datepicker" ).datepicker({
+                format: 'yyyy-mm-dd'
+            });
+            const regex = new RegExp("[0-9]|-");
+            $("#cphone").on('keypress', function (event) {
+                var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+                if (!regex.test(key)) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+            $("#wphone").on('keypress', function (event) {
+                var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+                if (!regex.test(key)) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+            $("#hphone").on('keypress', function (event) {
+                var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+                if (!regex.test(key)) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+            const codex = new RegExp("[0-9]");
+            $("#acode").on('keypress', function (event) {
+                var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+                if (!codex.test(key)) {
+                    event.preventDefault();
+                    return false;
+                }
+            });
+        });
+
+        const url = window.location.href;
+		console.log(url);
+        $.ajax({
+            url:'MoreDetails.php',
+            type:'POST',
+            data:{url:url},
+            success:function(data){
+                var datax = JSON.parse(data);
+                console.log(datax);
+                const dates = datax["date"]["date"];
+                if(dates != null){
+					$("#datepicker").val(dates);
+				}
+                $("#fname").val(datax["contact"]["fName"]);
+                const mName = datax["contact"]["mName"];
+                if(mName != null){
+                    $("#mName").val(mName);
+                }
+				const lName = datax["contact"]["lName"];
+				if(lName != null){
+				    $("#lName").val(lName);
+				}
+                var nameDetails = "<li class=collection-item style='padding: 8px'><span class=title><b>Name: </b>"+datax["contact"]["fName"] +" "+ datax["contact"]["mName"]+" "+datax["contact"]["lName"]+"</span></li>";
+                $("#display_list").append(nameDetails);
+                const dateDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> DOB: </b> " +dates+ "</span></li>";
+                $("#display_list").append(dateDetails);
+                const ex = datax["phone"]["type"];
+                $("#acode").val(datax["phone"]["code"]);
+                const cPhone = datax["phone"]["cphone"];
+                const wPhone = datax["phone"]["wphone"];
+                const hPhone = datax["phone"]["hphone"];
+                var phoneDetails = "";
+                if (ex == 4){
+                    $("#cphone").val(cPhone);
+                    $("#hphone").val(hPhone);
+                    $("#wphone").val(wPhone);
+                    phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Cell-Phone: </b> " +cPhone+ "</span>" +
+                        "<p><b> Home-Phone: </b>"+hPhone + "<br><b>Work-Phone: </b>"+wPhone +"</p>";
+                    "</li>";
+                }else if(ex == 3){
+                    $("#cphone").val(cPhone);
+                    $("#hphone").val(hPhone);
+                    phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Cell-Phone: </b> " +cPhone+ "</span>" +
+                        "<p><b> Home-Phone: </b>"+hPhone+"</p>";
+                    "</li>";
+                }else if(ex == 2){
+                    $("#wphone").val(wPhone);
+                    $("#hphone").val(hPhone);
+                    phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Home-Phone: </b> " +hPhone+ "</span>" +
+                        "<p><b>Work-Phone: </b>"+wPhone +"</p>";
+                    "</li>";
+                }else if(ex == 1){
+                    $("#cphone").val(cPhone);
+                    $("#wphone").val(wPhone);
+                    phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Cell-Phone: </b> " +cPhone+ "</span>" +
+                        "<p><b>Work-Phone: </b>"+wPhone +"</p>";
+                    "</li>";
+                }else if (ex == 0) {
+                    if(cPhone != null){
+                        $("#cphone").val(cPhone);
+                        phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Cell-Phone: </b> " +cPhone+ "</span></li>";
+                    }
+                    if (wPhone != null){
+                        $("#wphone").val(wPhone);
+                        phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Work-Phone: </b> " +wPhone+ "</span></li>";
+                    }
+                    if (hPhone != null){
+                        $("#hphone").val(hPhone);
+                        phoneDetails = "<li class=collection-item style='padding: 8px'><span class=title> <b> Home-Phone: </b> " +hPhone+ "</span></li>";
+                    }
+                }
+                $("#display_list").append(phoneDetails);
+                var addType = datax["home"];
+                var workType = datax["work"];
+                if(addType != null && workType != null){
+                    const had = datax["home"]["address"];
+                    const hst =  datax["home"]["state"];
+                    const hci =  datax["home"]["city"];
+                    const hzi =  datax["home"]["zip"];
+
+                    const wad = datax["work"]["address"];
+                    const wst =  datax["work"]["state"];
+                    const wci =  datax["work"]["city"];
+                    const wzi =  datax["work"]["zip"];
+
+                    $( "#addType").children('[value="3"]').attr('selected', true);
+                    $("#address").val(had);
+                    $("#city").val(hci);
+                    $("#state").val(hst);
+                    $("#zip").val(hzi);
+                    $("#workaddress").val(wad);
+                    $("#workcity").val(wci);
+                    $("#workstate").val(wst);
+                    $("#workzip").val(wzi);
+                    const hAddress = "<li class=collection-item style='padding: 8px'><span class=title> <b> Home-Address: </b> " +had+  ", "+hci +  ", "+hst+  ", "+hzi +"</span></li>";
+                    $("#display_list").append(hAddress);
+                    const workAddress = "<li class=collection-item style='padding: 8px'><span class=title> <b> Work-Address: </b> " +wad+ ", "+wci +  ", "+wst+  ", "+wzi +"</span></li>";
+                    $("#display_list").append(workAddress);
+                }else if(addType != null){
+                    const had = datax["home"]["address"];
+                    const hst =  datax["home"]["state"];
+                    const hci =  datax["home"]["city"];
+                    const hzi =  datax["home"]["zip"];
+                    $( "#addType").children('[value="2"]').attr('selected', true);
+                    $("#address").val(had);
+                    $("#city").val(hci);
+                    $("#state").val(hst);
+                    $("#zip").val(hzi);
+                    const hAddress = "<li class=collection-item style='padding: 8px'><span class=title> <b> Home-Address: </b> " +had+  ", "+hci +  ", "+hst+  ", "+hzi +"</span></li>";
+                    $("#display_list").append(hAddress);
+                }else if(workType != null) {
+                    const wad = datax["work"]["address"];
+                    const wst =  datax["work"]["state"];
+                    const wci =  datax["work"]["city"];
+                    const wzi =  datax["work"]["zip"];
+                    $( "#addType").children('[value="1"]').attr('selected', true);
+                    $("#workaddress").val(wad);
+                    $("#workcity").val(wci);
+                    $("#workstate").val(wst);
+                    $("#workzip").val(wzi);
+                    const workAddress = "<li class=collection-item style='padding: 8px'><span class=title> <b> Work-Address: </b> " +wad+ ", "+wci +  ", "+wst+  ", "+wzi +"</span></li>";
+                    $("#display_list").append(workAddress);
+                }
+            }
+        });
+        function editContacts() {
+            $("#form_id").show();
+            $("#display_list").hide();
+            const url = window.location.href;
+            $("#hiddenId").val(url);
+        }
+        function cancelClick() {
+            $("#form_id").hide();
+            $("#display_list").show();
+        }
+        function deleteContacts() {
+            $.ajax({
+                url:'DeleteContact.php',
+                type:'POST',
+                data:{idurl:url},
+                success:function(data){
+                    //replace this webpage later
+					//ye teko replace krna padega jabhi 404 error aaya
+                    window.location.replace("http://localhost/Addressbook/homepage.html");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<header>
+    <div class="navbar-fixed">
+        <nav class="navbar white">
+            <div class="nav-wrapper"><a href="homepage.html" class="brand-logo grey-text text-darken-4" style="padding: 4px"><b>PhoneBook</b></a>
+            </div>
+            <div class="nav-content">
+                <a class="btn-floating btn-large halfway-fab waves-effect waves-light red" style="margin-right: 5%" onclick="editContacts()">
+                    <i class="large material-icons">edit</i>
+                </a>
+                <a class="btn-floating btn-large halfway-fab waves-effect waves-light red" onclick="deleteContacts()">
+                    <i class="large material-icons">delete</i>
+                </a>
+            </div>
+        </nav>
+    </div>
+</header>
+<main>
+    <div class="container">
+        <div class="container s12 m3">
+            <div class="card " style="width: 35%; margin: auto" id="display_list">
+                <div class="card-title"><b><h4 style="padding: 8px">Details</h4></b></div>
+                <div class="card-content">
+                    <ul class="collection" id="detail_contacts">
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <form method="post" name="saveContact" action="UpdateContacts.php" id="form_id">
+            <!-- hidden input with stored id of contacts -->
+            <input id="hiddenId" class="hide"  type="text" name="idurl">
+            <div class="card ">
+                <div class="card-title center">
+                    <span class="title text-darken-3"><b>Contact</b></span>
+                </div>
+                <div class="card-content">
+                    <div class="input-field">
+                        <input placeholder="enter first name" id="fname" class="validate" type="text" name="fName" minlength="4" required="required">
+                        <label for="fname" >First name: </label>
+                    </div>
+                    <div class="input-field">
+                        <input placeholder="enter middle name"  id="mName"  class="validate" type="text" name="mName"  minlength="4">
+                        <label for="mName" >Middle name: </label>
+                    </div>
+                    <div class="input-field">
+                        <input placeholder="enter last name" id="lName"  class="validate" type="text" name="lName" minlength="4">
+                        <label for="lName" >Last name: </label>
+                    </div>
+                    <label for="addType">Address Type:</label>
+                    <div class="input-field">
+                        <div class="col s12">
+                            <select class="browser-default" id="addType" required onclick="getAddressType();">
+                                <option value="" disabled selected>Choose your option</option>
+                                <option value="1" name="addType">Home</option>
+                                <option value="2" name="addType">Work</option>
+                                <option value="3" name="addType">Both</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="card" id="home_address">
+                    <div class="card-title center">
+                        <span class="title text-darken-3"><b>Home Address</b></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="input-field">
+                            <input placeholder="enter address" id="address"  type="text" class="validate" name="haddress" minlength="6">
+                            <label for="address" >Address: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter city" id="city"  type="text" name="hcity" class="validate" minlength="4">
+                            <label for="city" >City: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter state" id="state"  type="text" name="hstate" class="validate" minlength="4">
+                            <label for="state" >State: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter zip" id="zip"  type="text" name="hzip" minlength="4">
+                            <label for="zip" >Zip: </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" id="work_address">
+                    <div class="card-title center">
+                        <span class="title text-darken-3"><b>Work Address</b></span>
+                    </div>
+                    <div class="card-content">
+                        <div class="input-field">
+                            <input placeholder="enter address" id="workaddress"  type="text" class="validate" name="waddress" minlength="6">
+                            <label for="workaddress" >Address: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter city" id="workcity"  type="text" class="validate" name="wcity" minlength="4">
+                            <label for="workcity" >City: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter state" id="workstate"  type="text" class="validate" name="wstate" minlength="4">
+                            <label for="workstate" >State: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter zip" id="workzip"  type="text" class="validate" name="wzip" minlength="4">
+                            <label for="workzip" >Zip: </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title center">
+                    <span class="title text-darken-3"><b>Phone Number</b></span>
+                </div>
+                <div class="card-content">
+                    <div class="col">
+                        <div class="input-field">
+                            <input placeholder="enter area code" id="acode"  type="text" name="acode" class="validate"  minlength="3" required="required">
+                            <label for="acode"  class="text-center">Area Code: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter cell phone" id="cphone"  type="text" name="cphone" class="validate" maxlength="15" minlength="4">
+                            <label for="cphone"  class="text-center">Cell Phone: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter home phone" id="hphone"  type="text" name="hphone" class="validate" maxlength="15" minlength="4">
+                            <label for="hphone"  class="text-center">Home Phone: </label>
+                        </div>
+                        <div class="input-field">
+                            <input placeholder="enter work phone" id="wphone"  type="text" name="wphone" class="validate" maxlength="15" minlength="4">
+                            <label for="wphone"  class="text-center">Work Phone: </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title center">
+                    <span class="title text-darken-3"><b>DOB</b></span>
+                </div>
+                <div class="card-content">
+                    <div class="input-field">
+                        <input type="date" placeholder="select dob" id="datepicker" required="required" name="date">
+                        <label for="datepicker"><b>Date Of Birth:</b></label>
+                    </div>
+                </div>
+            </div>
+            <div class="row s2">
+                <button class="btn center red" type="submit" name="submitform" id="saveButton">Save</button>
+                <button class="btn center red" onclick="cancelClick()" type="button" name="cancelform" id="canel">Cancel</button>
+            </div>
+        </form>
+    </div>
+</main>
+<footer class="page-footer materialize-red">
+    <div class="col center">
+        <p class="brand-logo" style="color: white">Developed by Shweta sahalot</p>
+    </div>
+</footer>
+</body>
+</html>
